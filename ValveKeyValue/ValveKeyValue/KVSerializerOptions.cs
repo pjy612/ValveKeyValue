@@ -23,6 +23,8 @@ namespace ValveKeyValue
         /// </summary>
         public bool EnableValveNullByteBugBehavior { get; set; }
 
+        public bool ValueAllString { get; set; }
+
         /// <summary>
         /// Gets or sets a way to open any file referenced with <c>#include</c> or <c>#base</c>.
         /// </summary>

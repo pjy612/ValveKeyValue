@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ValveKeyValue
 {
-    class KVCollectionValue : KVValue, IEnumerable<KVObject>
+    public class KVCollectionValue : KVValue, IEnumerable<KVObject>
     {
         public KVCollectionValue()
         {
@@ -40,7 +40,7 @@ namespace ValveKeyValue
         public KVObject Get(string name)
         {
             Require.NotNull(name, nameof(name));
-            return children.FirstOrDefault(c => c.Name == name);
+            return children.Find(c => c.Name == name);
         }
 
         public void Set(string name, KVValue value)
@@ -51,6 +51,8 @@ namespace ValveKeyValue
             children.RemoveAll(kv => kv.Name == name);
             children.Add(new KVObject(name, value));
         }
+
+        public void Set(KVObject value) => Set(value.Name, value.Value);
 
         #region IEnumerable<KVObject>
 
@@ -119,10 +121,7 @@ namespace ValveKeyValue
         {
             throw new NotSupportedException();
         }
-
-        public override string ToString(IFormatProvider provider)
-             => ToString();
-
+        
         public override object ToType(Type conversionType, IFormatProvider provider)
         {
             throw new NotSupportedException();
@@ -152,5 +151,7 @@ namespace ValveKeyValue
         #endregion
 
         public override string ToString() => "[Collection]";
+        public override string ToString(IFormatProvider provider)
+            => ToString();
     }
 }

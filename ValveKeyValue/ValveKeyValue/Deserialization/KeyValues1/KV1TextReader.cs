@@ -132,7 +132,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                     break;
 
                 case KV1TextReaderState.InObjectBetweenKeyAndValue:
-                    var value = ParseValue(text);
+                    var value = ParseValue(text, options);
                     var name = stateMachine.CurrentName;
                     listener.OnKeyValuePair(name, value);
 
@@ -254,8 +254,12 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             return stream;
         }
 
-        static KVValue ParseValue(string text)
+        static KVValue ParseValue(string text, KVSerializerOptions options)
         {
+            if (options.ValueAllString)
+            {
+                return new KVObjectValue<string>(text, KVValueType.String);
+            }
             // "0x" + 2 digits per byte. Long is 8 bytes, so s + 16 = 18.
             // Expressed this way for readability, rather than using a magic value.
             const int HexStringLengthForUnsignedLong = 2 + sizeof(long) * 2;
