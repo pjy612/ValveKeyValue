@@ -66,7 +66,7 @@ namespace ValveKeyValue.Serialization.KeyValues1
         {
             WriteIndentation();
             WriteText(name);
-            writer.Write('\t');
+            writer.Write("\t\t");
             WriteText(value.ToString(CultureInfo.InvariantCulture));
             WriteLine();
         }
