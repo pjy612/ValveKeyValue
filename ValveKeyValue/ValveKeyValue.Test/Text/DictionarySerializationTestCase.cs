@@ -1,7 +1,3 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using NUnit.Framework;
-
 namespace ValveKeyValue.Test
 {
     class DictionarySerializationTestCase
@@ -47,8 +43,8 @@ namespace ValveKeyValue.Test
             {
                 Test = new Dictionary<string, float[]>
                 {
-                    ["test"] = new[] { 1.1234f, 2.2345f, 3.54677f },
-                    ["test2"] = new[] { 1.1234f, 2.2345f, 3.54677f }
+                    ["test"] = [1.1234f, 2.2345f, 3.54677f],
+                    ["test2"] = [1.1234f, 2.2345f, 3.54677f]
                 },
             };
 
@@ -74,8 +70,8 @@ namespace ValveKeyValue.Test
             {
                 Test = new Dictionary<string, float[]>
                 {
-                    ["test"] = new[] { 1.1234f, 2.2345f, 3.54677f },
-                    ["test2"] = new[] { 1.1234f, 2.2345f, 3.54677f }
+                    ["test"] = [1.1234f, 2.2345f, 3.54677f],
+                    ["test2"] = [1.1234f, 2.2345f, 3.54677f]
                 },
             };
 

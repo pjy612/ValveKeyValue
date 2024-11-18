@@ -1,4 +1,3 @@
-﻿using System;
 using System.Diagnostics;
 
 namespace ValveKeyValue
@@ -35,16 +34,13 @@ namespace ValveKeyValue
             };
         }
 
-        public override bool ToBoolean(IFormatProvider provider) => ToInt32(provider) == 1;
+        public override bool ToBoolean(IFormatProvider provider) => ToInt32(provider) != 0;
 
         public override byte ToByte(IFormatProvider provider) => (byte)Convert.ChangeType(value, typeof(byte), provider);
 
         public override char ToChar(IFormatProvider provider) => (char)Convert.ChangeType(value, typeof(char), provider);
 
-        public override DateTime ToDateTime(IFormatProvider provider)
-        {
-            throw new InvalidCastException("Casting to DateTime is not supported.");
-        }
+        public override DateTime ToDateTime(IFormatProvider provider) => throw new InvalidCastException("Casting to DateTime is not supported.");
 
         public override decimal ToDecimal(IFormatProvider provider) => (decimal)Convert.ChangeType(value, typeof(decimal), provider);
 

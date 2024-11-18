@@ -1,9 +1,7 @@
-﻿using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using NUnit.Framework;
 
 namespace ValveKeyValue.Test
 {
@@ -85,17 +83,45 @@ namespace ValveKeyValue.Test
                 sb.Append('\n');
             }
 
+            var constructors = type
+                .GetConstructors(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(t => !t.IsPrivate && !t.IsAssembly && !t.IsFamilyAndAssembly)
+                .OrderBy(t => t.Name, StringComparer.InvariantCulture)
+                .ThenBy(t => string.Join(", ", t.GetParameters().Select(GetParameterAsString)), StringComparer.InvariantCulture);
+
+            foreach (var constructor in constructors)
+            {
+                sb.Append("    ");
+
+                if (constructor.IsPublic)
+                {
+                    sb.Append("public");
+                }
+                else
+                {
+                    sb.Append("protected");
+                }
+
+                if (constructor.IsStatic)
+                {
+                    sb.Append(" static");
+                }
+
+                sb.Append(' ');
+                sb.Append(constructor.Name);
+                sb.Append('(');
+                sb.Append(string.Join(", ", constructor.GetParameters().Select(GetParameterAsString)));
+                sb.Append(");\n");
+            }
+
             var methods = type
                 .GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .OrderBy(t => t.Name, StringComparer.InvariantCulture);
+                .Where(t => !t.IsPrivate && !t.IsAssembly && !t.IsFamilyAndAssembly)
+                .OrderBy(t => t.Name, StringComparer.InvariantCulture)
+                .ThenBy(t => string.Join(", ", t.GetParameters().Select(GetParameterAsString)), StringComparer.InvariantCulture);
 
             foreach (var method in methods)
             {
-                if (method.IsPrivate || method.IsAssembly || method.IsFamilyAndAssembly)
-                {
-                    continue;
-                }
-
                 sb.Append("    ");
 
                 if (method.IsPublic)
@@ -147,41 +173,55 @@ namespace ValveKeyValue.Test
                 return false;
             }
 
-            var baseMethod = baseType.GetMethod(method.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (baseMethod == null)
-            {
-                return false;
-            }
+            var baseMethods = baseType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-            if (baseMethod.DeclaringType == method.DeclaringType)
+            foreach (var baseMethod in baseMethods)
             {
-                return false;
-            }
-
-            var methodDefinition = method.GetBaseDefinition();
-            var baseMethodDefinition = baseMethod.GetBaseDefinition();
-
-            if (methodDefinition.DeclaringType == baseMethodDefinition.DeclaringType)
-            {
-                return false;
-            }
-
-            var methodParameters = method.GetParameters();
-            var baseMethodParameters = baseMethod.GetParameters();
-            if (methodParameters.Length != baseMethodParameters.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < methodParameters.Length; i++)
-            {
-                if (methodParameters[i].ParameterType != baseMethodParameters[i].ParameterType)
+                if (baseMethod.Name != method.Name)
                 {
-                    return false;
+                    continue;
                 }
+
+                if (baseMethod.DeclaringType == method.DeclaringType)
+                {
+                    continue;
+                }
+
+                var methodDefinition = method.GetBaseDefinition();
+                var baseMethodDefinition = baseMethod.GetBaseDefinition();
+
+                if (methodDefinition.DeclaringType == baseMethodDefinition.DeclaringType)
+                {
+                    continue;
+                }
+
+                var methodParameters = method.GetParameters();
+                var baseMethodParameters = baseMethod.GetParameters();
+                if (methodParameters.Length != baseMethodParameters.Length)
+                {
+                    continue;
+                }
+
+                var hasMatchingParameters = true;
+
+                for (int i = 0; i < methodParameters.Length; i++)
+                {
+                    if (methodParameters[i].ParameterType != baseMethodParameters[i].ParameterType)
+                    {
+                        hasMatchingParameters = false;
+                        break;
+                    }
+                }
+
+                if (!hasMatchingParameters)
+                {
+                    continue;
+                }
+
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         static string GetTypeAsString(Type type)

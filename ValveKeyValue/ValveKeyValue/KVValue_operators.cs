@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace ValveKeyValue
 {
     /// <summary>
@@ -24,6 +22,15 @@ namespace ValveKeyValue
         public static implicit operator KVValue(int value)
         {
             return new KVObjectValue<int>(value, KVValueType.Int32);
+        }
+
+        /// <summary>
+        /// Implicit cast operator for <see cref="bool"/>  to KVValue.
+        /// </summary>
+        /// <param name="value">The <see cref="bool"/> to cast.</param>
+        public static implicit operator KVValue(bool value)
+        {
+            return new KVObjectValue<int>(value ? 1 : 0, KVValueType.Int32);
         }
 
         /// <summary>

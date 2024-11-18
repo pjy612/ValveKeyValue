@@ -1,8 +1,5 @@
-﻿using System;
 using System.Globalization;
-using System.IO;
 using System.Text;
-using NUnit.Framework;
 
 namespace ValveKeyValue.Test;
 
@@ -95,5 +92,33 @@ internal class StreamsTestCase
         var data = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(blockingStream);
 
         Assert.That(data["test"].ToInt32(CultureInfo.InvariantCulture), Is.EqualTo(1337));
+    }
+
+    [Test]
+    public void LeavesStreamOpenAfterDeserialize()
+    {
+        using var stream = TestDataHelper.OpenResource("Text.object_person.vdf");
+
+        KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream);
+
+        Assert.That(stream.CanRead, Is.True);
+    }
+
+    [Test]
+    public void LeavesStreamOpenAfterDeserializeBinary()
+    {
+        var data = new byte[]
+        {
+            0x00, // object: TestObject
+                0x54, 0x00,
+                0x08, // end object
+            0x08, // end document
+        };
+
+        using var stream = new MemoryStream(data);
+
+        KVSerializer.Create(KVSerializationFormat.KeyValues1Binary).Deserialize(stream);
+
+        Assert.That(stream.CanRead, Is.True);
     }
 }

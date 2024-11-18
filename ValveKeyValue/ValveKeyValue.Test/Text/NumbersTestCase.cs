@@ -1,5 +1,3 @@
-﻿using NUnit.Framework;
-
 namespace ValveKeyValue.Test
 {
     class NumbersTestCase

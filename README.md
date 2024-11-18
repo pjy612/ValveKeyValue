@@ -1,4 +1,4 @@
-# Valve's KeyValue for .NET
+<h1><img src="./Misc/logo.png" width="64" align="center"> Valve's KeyValue for .NET</h1>
 
 [![Build Status (GitHub)](https://img.shields.io/github/actions/workflow/status/ValveResourceFormat/ValveKeyValue/ci.yml?label=Build&style=flat-square&branch=master)](https://github.com/ValveResourceFormat/ValveKeyValue/actions)
 [![NuGet](https://img.shields.io/nuget/v/ValveKeyValue.svg?label=NuGet&style=flat-square)](https://www.nuget.org/packages/ValveKeyValue/)
@@ -27,8 +27,8 @@ Console.WriteLine(data["some key"]);
 ```cs
 public class SimpleObject
 {
-	public string Name { get; set; }
-	public string Value { get; set; }
+    public string Name { get; set; }
+    public string Value { get; set; }
 }
 
 var stream = File.OpenRead("file.vdf"); // or any other Stream
@@ -65,30 +65,30 @@ var data = kv.Deserialize(stream, options);
 
 ## Deserializing binary
 
-Essentially the same text, just change `KeyValues1Text` to `KeyValues1Binary`.
+Essentially the same as text, just change `KeyValues1Text` to `KeyValues1Binary`.
 
 ## Serializing to text
 
 ```cs
 class DataObject
 {
-	public string Name { get; set; }
+    public string Name { get; set; }
 
-	public string Developer { get; set; }
+    public string Developer { get; set; }
 
-	[KVProperty("description")]
-	public string Summary { get; set; }
+    [KVProperty("description")]
+    public string Summary { get; set; }
 
-	[KVIgnore]
-	public string ExtraData { get; set; }
+    [KVIgnore]
+    public string ExtraData { get; set; }
 }
 
 var data = new DataObject
 {
-	Developer = "Valve Software",
-	Name = "Dota 2",
-	Summary = "Dota 2 is a complex game.",
-	ExtraData = "This will not be serialized."
+    Developer = "Valve Software",
+    Name = "Dota 2",
+    Summary = "Dota 2 is a complex game.",
+    ExtraData = "This will not be serialized."
 };
 
 using var stream = File.OpenWrite("file.vdf");
@@ -99,4 +99,4 @@ kv.Serialize(stream, data, "root object name");
 
 ## Serializing to binary
 
-Essentially the same text, just change `KeyValues1Text` to `KeyValues1Binary`.
+Essentially the same as text, just change `KeyValues1Text` to `KeyValues1Binary`.

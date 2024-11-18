@@ -1,5 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -102,17 +100,6 @@ namespace ValveKeyValue
             return collection;
         }
 
-        string DebuggerDescription
-        {
-            get
-            {
-                var description = new StringBuilder();
-                description.Append(Name);
-                description.Append(": ");
-                description.Append(Value.ToString());
-
-                return description.ToString();
-            }
-        }
+        string DebuggerDescription => $"{Name}: {Value}";
     }
 }

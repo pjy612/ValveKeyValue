@@ -1,6 +1,3 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
-
 namespace ValveKeyValue.Test
 {
     class DictionaryDuplicateKeysTestCase

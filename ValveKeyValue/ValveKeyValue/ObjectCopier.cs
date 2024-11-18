@@ -1,6 +1,4 @@
-﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -43,10 +41,11 @@ namespace ValveKeyValue
                     throw new InvalidOperationException($"Cannot deserialize a non-array value to type \"{typeof(TObject).Namespace}.{typeof(TObject).Name}\".");
                 }
 
-                var typedObject = (TObject)FormatterServices.GetUninitializedObject(typeof(TObject));
-
+                // The object must remain boxed until it is fully initiallized, as this is the only way
+                // that we can build a struct due to the nature of struct copying.
+                var typedObject = FormatterServices.GetUninitializedObject(typeof(TObject));
                 CopyObject(keyValueObject, typedObject, reflector);
-                return typedObject;
+                return (TObject)typedObject;
             }
             else if (TryConvertValueTo<TObject>(keyValueObject.Name, keyValueObject.Value, out var converted))
             {
@@ -55,7 +54,7 @@ namespace ValveKeyValue
             else
             {
                 // TODO: For nullable types this typeof is not that useful
-                throw new NotSupportedException($"Convering to {typeof(TObject).Name} is not supported. (key = {keyValueObject.Name}, type = {keyValueObject.Value.ValueType})");
+                throw new NotSupportedException($"Converting to {typeof(TObject).Name} is not supported. (key = {keyValueObject.Name}, type = {keyValueObject.Value.ValueType})");
             }
         }
 
@@ -134,16 +133,10 @@ namespace ValveKeyValue
         static KVObject CopyObject(object @object, string name, IObjectReflector reflector, HashSet<object> visitedObjects)
             => FromObjectCore(@object.GetType(), @object, name, reflector, visitedObjects);
 
-        static void CopyObject<TObject>(KVObject kv, TObject obj, IObjectReflector reflector)
+        static void CopyObject(KVObject kv, object obj, IObjectReflector reflector)
         {
             Require.NotNull(kv, nameof(kv));
-
-            // Cannot use Require.NotNull here because TObject might be a struct.
-            if (obj == null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
+            Require.NotNull(obj, nameof(obj));
             Require.NotNull(reflector, nameof(reflector));
 
             var members = reflector.GetMembers(obj).ToDictionary(m => m.Name, m => m, StringComparer.OrdinalIgnoreCase);
@@ -414,7 +407,6 @@ namespace ValveKeyValue
                 type == typeof(bool) ||
                 type == typeof(byte) ||
                 type == typeof(char) ||
-                // type == typeof(DateTime) || // TODO: Casting to DateTime (from int32) is not supported
                 type == typeof(decimal) ||
                 type == typeof(double) ||
                 type == typeof(float) ||
@@ -437,7 +429,7 @@ namespace ValveKeyValue
 
             return Type.GetTypeCode(type) switch
             {
-                //TypeCode.Boolean => throw new NotImplementedException("Converting to boolean is not yet supported"),
+                TypeCode.Boolean => (KVValue)(bool)value,
                 //TypeCode.Byte => throw new NotImplementedException("Converting to byte is not yet supported"),
                 //TypeCode.Char => throw new NotImplementedException("Converting to char is not yet supported"),
                 //TypeCode.DateTime => throw new NotImplementedException(), // Datetime are not supported

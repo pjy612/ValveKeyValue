@@ -5,6 +5,9 @@ public interface ValveKeyValue.IIncludedFileLoader
 
 public class ValveKeyValue.KeyValueException
 {
+    public .ctor();
+    public .ctor(string message);
+    public .ctor(string message, Exception inner);
     protected void add_SerializeObjectState(EventHandler`1[[System.Runtime.Serialization.SafeSerializationEventArgs]] value);
     public bool Equals(object obj);
     protected void Finalize();
@@ -29,8 +32,103 @@ public class ValveKeyValue.KeyValueException
     public string ToString();
 }
 
+public class ValveKeyValue.KVArrayValue
+{
+    public .ctor();
+    public void Add(ValveKeyValue.KVValue value);
+    public void AddRange(System.Collections.Generic.IEnumerable`1[[ValveKeyValue.KVValue]] values);
+    public void Clear();
+    public bool Contains(ValveKeyValue.KVValue item);
+    public void CopyTo(ValveKeyValue.KVValue[] array, int arrayIndex);
+    public bool Equals(object obj);
+    protected void Finalize();
+    public int get_Count();
+    public bool get_IsReadOnly();
+    public ValveKeyValue.KVValue get_Item(int key);
+    public ValveKeyValue.KVValue get_Item(string key);
+    public ValveKeyValue.KVValueType get_ValueType();
+    public System.Collections.Generic.IEnumerator`1[[ValveKeyValue.KVValue]] GetEnumerator();
+    public int GetHashCode();
+    public Type GetType();
+    public TypeCode GetTypeCode();
+    public int IndexOf(ValveKeyValue.KVValue item);
+    public void Insert(int index, ValveKeyValue.KVValue item);
+    protected object MemberwiseClone();
+    public bool Remove(ValveKeyValue.KVValue item);
+    public void RemoveAt(int index);
+    public void set_Item(int key, ValveKeyValue.KVValue value);
+    public bool ToBoolean(IFormatProvider provider);
+    public byte ToByte(IFormatProvider provider);
+    public char ToChar(IFormatProvider provider);
+    public DateTime ToDateTime(IFormatProvider provider);
+    public decimal ToDecimal(IFormatProvider provider);
+    public double ToDouble(IFormatProvider provider);
+    public short ToInt16(IFormatProvider provider);
+    public int ToInt32(IFormatProvider provider);
+    public long ToInt64(IFormatProvider provider);
+    public sbyte ToSByte(IFormatProvider provider);
+    public float ToSingle(IFormatProvider provider);
+    public string ToString();
+    public string ToString(IFormatProvider provider);
+    public object ToType(Type conversionType, IFormatProvider provider);
+    public ushort ToUInt16(IFormatProvider provider);
+    public uint ToUInt32(IFormatProvider provider);
+    public ulong ToUInt64(IFormatProvider provider);
+}
+
+public class ValveKeyValue.KVBinaryBlob
+{
+    public .ctor(byte[] value);
+    public .ctor(Memory`1[[byte]] value);
+    public bool Equals(object obj);
+    protected void Finalize();
+    public Memory`1[[byte]] get_Bytes();
+    public ValveKeyValue.KVValue get_Item(string key);
+    public ValveKeyValue.KVValueType get_ValueType();
+    public int GetHashCode();
+    public Type GetType();
+    public TypeCode GetTypeCode();
+    protected object MemberwiseClone();
+    public bool ToBoolean(IFormatProvider provider);
+    public byte ToByte(IFormatProvider provider);
+    public char ToChar(IFormatProvider provider);
+    public DateTime ToDateTime(IFormatProvider provider);
+    public decimal ToDecimal(IFormatProvider provider);
+    public double ToDouble(IFormatProvider provider);
+    public short ToInt16(IFormatProvider provider);
+    public int ToInt32(IFormatProvider provider);
+    public long ToInt64(IFormatProvider provider);
+    public sbyte ToSByte(IFormatProvider provider);
+    public float ToSingle(IFormatProvider provider);
+    public string ToString();
+    public string ToString(IFormatProvider provider);
+    public object ToType(Type conversionType, IFormatProvider provider);
+    public ushort ToUInt16(IFormatProvider provider);
+    public uint ToUInt32(IFormatProvider provider);
+    public ulong ToUInt64(IFormatProvider provider);
+}
+
+public class ValveKeyValue.KVDocument
+{
+    public .ctor(string name, ValveKeyValue.KVValue value);
+    public void Add(ValveKeyValue.KVObject value);
+    public bool Equals(object obj);
+    protected void Finalize();
+    public System.Collections.Generic.IEnumerable`1[[ValveKeyValue.KVObject]] get_Children();
+    public ValveKeyValue.KVValue get_Item(string key);
+    public string get_Name();
+    public ValveKeyValue.KVValue get_Value();
+    public System.Collections.Generic.IEnumerator`1[[ValveKeyValue.KVObject]] GetEnumerator();
+    public int GetHashCode();
+    public Type GetType();
+    protected object MemberwiseClone();
+    public void set_Item(string key, ValveKeyValue.KVValue value);
+    public string ToString();
+}
+
 public sealed class ValveKeyValue.KVIgnoreAttribute
 {
+    public .ctor();
     public bool Equals(object obj);
     protected void Finalize();
     public object get_TypeId();
@@ -44,6 +142,8 @@ public sealed class ValveKeyValue.KVIgnoreAttribute
 
 public class ValveKeyValue.KVObject
 {
+    public .ctor(string name, System.Collections.Generic.IEnumerable`1[[ValveKeyValue.KVObject]] items);
+    public .ctor(string name, ValveKeyValue.KVValue value);
     public void Add(ValveKeyValue.KVObject value);
     public bool Equals(object obj);
     protected void Finalize();
@@ -61,6 +161,7 @@ public class ValveKeyValue.KVObject
 
 public sealed class ValveKeyValue.KVPropertyAttribute
 {
+    public .ctor(string propertyName);
     public bool Equals(object obj);
     protected void Finalize();
     public string get_PropertyName();
@@ -87,21 +188,22 @@ public sealed enum ValveKeyValue.KVSerializationFormat
     public bool HasFlag(Enum flag);
     protected object MemberwiseClone();
     public string ToString();
-    public string ToString(string format, IFormatProvider provider);
-    public string ToString(string format);
     public string ToString(IFormatProvider provider);
+    public string ToString(string format);
+    public string ToString(string format, IFormatProvider provider);
 }
 
 public class ValveKeyValue.KVSerializer
 {
     public static ValveKeyValue.KVSerializer Create(ValveKeyValue.KVSerializationFormat format);
-    public ValveKeyValue.KVObject Deserialize(System.IO.Stream stream, ValveKeyValue.KVSerializerOptions options);
+    public ValveKeyValue.KVDocument Deserialize(System.IO.Stream stream, ValveKeyValue.KVSerializerOptions options);
     public ValveKeyValue.TObject Deserialize<ValveKeyValue.TObject>(System.IO.Stream stream, ValveKeyValue.KVSerializerOptions options);
     public bool Equals(object obj);
     protected void Finalize();
     public int GetHashCode();
     public Type GetType();
     protected object MemberwiseClone();
+    public void Serialize(System.IO.Stream stream, ValveKeyValue.KVDocument data, ValveKeyValue.KVSerializerOptions options);
     public void Serialize(System.IO.Stream stream, ValveKeyValue.KVObject data, ValveKeyValue.KVSerializerOptions options);
     public void Serialize<ValveKeyValue.TData>(System.IO.Stream stream, ValveKeyValue.TData data, string name, ValveKeyValue.KVSerializerOptions options);
     public string ToString();
@@ -109,6 +211,7 @@ public class ValveKeyValue.KVSerializer
 
 public sealed class ValveKeyValue.KVSerializerOptions
 {
+    public .ctor();
     public bool Equals(object obj);
     protected void Finalize();
     public System.Collections.Generic.IList`1[[string]] get_Conditions();
@@ -116,17 +219,20 @@ public sealed class ValveKeyValue.KVSerializerOptions
     public bool get_EnableValveNullByteBugBehavior();
     public ValveKeyValue.IIncludedFileLoader get_FileLoader();
     public bool get_HasEscapeSequences();
+    public ValveKeyValue.StringTable get_StringTable();
     public int GetHashCode();
     public Type GetType();
     protected object MemberwiseClone();
     public void set_EnableValveNullByteBugBehavior(bool value);
     public void set_FileLoader(ValveKeyValue.IIncludedFileLoader value);
     public void set_HasEscapeSequences(bool value);
+    public void set_StringTable(ValveKeyValue.StringTable value);
     public string ToString();
 }
 
 public class ValveKeyValue.KVValue
 {
+    protected .ctor();
     public bool Equals(object obj);
     protected void Finalize();
     public ValveKeyValue.KVValue get_Item(string key);
@@ -150,12 +256,13 @@ public class ValveKeyValue.KVValue
     public static ulong op_Explicit(ValveKeyValue.KVValue value);
     public static ushort op_Explicit(ValveKeyValue.KVValue value);
     public static IntPtr op_Explicit(ValveKeyValue.KVValue value);
-    public static ValveKeyValue.KVValue op_Implicit(string value);
+    public static ValveKeyValue.KVValue op_Implicit(bool value);
+    public static ValveKeyValue.KVValue op_Implicit(float value);
     public static ValveKeyValue.KVValue op_Implicit(int value);
     public static ValveKeyValue.KVValue op_Implicit(IntPtr value);
-    public static ValveKeyValue.KVValue op_Implicit(ulong value);
-    public static ValveKeyValue.KVValue op_Implicit(float value);
     public static ValveKeyValue.KVValue op_Implicit(long value);
+    public static ValveKeyValue.KVValue op_Implicit(string value);
+    public static ValveKeyValue.KVValue op_Implicit(ulong value);
     public bool ToBoolean(IFormatProvider provider);
     public byte ToByte(IFormatProvider provider);
     public char ToChar(IFormatProvider provider);
@@ -167,8 +274,8 @@ public class ValveKeyValue.KVValue
     public long ToInt64(IFormatProvider provider);
     public sbyte ToSByte(IFormatProvider provider);
     public float ToSingle(IFormatProvider provider);
-    public string ToString(IFormatProvider provider);
     public string ToString();
+    public string ToString(IFormatProvider provider);
     public object ToType(Type conversionType, IFormatProvider provider);
     public ushort ToUInt16(IFormatProvider provider);
     public uint ToUInt32(IFormatProvider provider);
@@ -177,13 +284,17 @@ public class ValveKeyValue.KVValue
 
 public sealed enum ValveKeyValue.KVValueType
 {
-    Collection = 0;
-    String = 1;
-    Int32 = 2;
-    UInt64 = 3;
-    FloatingPoint = 4;
-    Pointer = 5;
-    Int64 = 6;
+    Null = 0;
+    Collection = 1;
+    Array = 2;
+    BinaryBlob = 3;
+    String = 4;
+    Int32 = 5;
+    UInt64 = 6;
+    FloatingPoint = 7;
+    Pointer = 8;
+    Int64 = 9;
+    Boolean = 10;
 
     public int CompareTo(object target);
     public bool Equals(object obj);
@@ -194,8 +305,25 @@ public sealed enum ValveKeyValue.KVValueType
     public bool HasFlag(Enum flag);
     protected object MemberwiseClone();
     public string ToString();
-    public string ToString(string format, IFormatProvider provider);
-    public string ToString(string format);
     public string ToString(IFormatProvider provider);
+    public string ToString(string format);
+    public string ToString(string format, IFormatProvider provider);
+}
+
+public sealed class ValveKeyValue.StringTable
+{
+    public .ctor();
+    public .ctor(int capacity);
+    public .ctor(System.Collections.Generic.IList`1[[string]] values);
+    public void Add(string value);
+    public bool Equals(object obj);
+    protected void Finalize();
+    public string get_Item(int index);
+    public int GetHashCode();
+    public int GetOrAdd(string value);
+    public Type GetType();
+    protected object MemberwiseClone();
+    public string[] ToArray();
+    public string ToString();
 }
 

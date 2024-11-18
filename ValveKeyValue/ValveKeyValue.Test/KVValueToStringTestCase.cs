@@ -1,6 +1,5 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Linq;
-using NUnit.Framework;
 
 namespace ValveKeyValue.Test
 {
@@ -15,8 +14,8 @@ namespace ValveKeyValue.Test
             {
                 yield return new TestCaseData(new KVObject("a", "blah").Value).Returns("blah");
                 yield return new TestCaseData(new KVObject("a", "yay").Value).Returns("yay");
-                yield return new TestCaseData(new KVObject("a", Enumerable.Empty<KVObject>()).Value).Returns("[Collection]").SetName("{m} - Empty Collection");
-                yield return new TestCaseData(new KVObject("a", new[] { new KVObject("boo", "aah") }).Value).Returns("[Collection]").SetName("{m} - Collection With Value");
+                yield return new TestCaseData(new KVObject("a", []).Value).Returns("[Collection]").SetName("{m} - Empty Collection");
+                yield return new TestCaseData(new KVObject("a", [new KVObject("boo", "aah")]).Value).Returns("[Collection]").SetName("{m} - Collection With Value");
             }
         }
     }

@@ -1,9 +1,6 @@
-﻿using System;
-using System.IO;
 using ValveKeyValue.Abstraction;
 using ValveKeyValue.Deserialization;
 using ValveKeyValue.Deserialization.KeyValues1;
-using ValveKeyValue.Serialization;
 using ValveKeyValue.Serialization.KeyValues1;
 
 namespace ValveKeyValue
@@ -33,8 +30,8 @@ namespace ValveKeyValue
         /// </summary>
         /// <param name="stream">The stream to deserialize from.</param>
         /// <param name="options">Options to use that can influence the deserialization process.</param>
-        /// <returns>A <see cref="KVObject"/> representing the KeyValues structure encoded in the stream.</returns>
-        public KVObject Deserialize(Stream stream, KVSerializerOptions options = null)
+        /// <returns>A <see cref="KVDocument"/> representing the KeyValues structure encoded in the stream.</returns>
+        public KVDocument Deserialize(Stream stream, KVSerializerOptions options = null)
         {
             Require.NotNull(stream, nameof(stream));
             var builder = new KVObjectBuilder();
@@ -44,7 +41,8 @@ namespace ValveKeyValue
                 reader.ReadObject();
             }
 
-            return builder.GetObject();
+            var root = builder.GetObject();
+            return new KVDocument(root.Name, root.Value);
         }
 
         /// <summary>
@@ -77,6 +75,15 @@ namespace ValveKeyValue
         }
 
         /// <summary>
+        /// Serializes a KeyValue object into stream.
+        /// </summary>
+        /// <param name="stream">The stream to serialize into.</param>
+        /// <param name="data">The data to serialize.</param>
+        /// <param name="options">Options to use that can influence the serialization process.</param>
+        public void Serialize(Stream stream, KVDocument data, KVSerializerOptions options = null) =>
+            Serialize(stream, (KVObject)data, options);
+
+        /// <summary>
         /// Serializes a KeyValue object into stream in plain text..
         /// </summary>
         /// <param name="stream">The stream to serialize into.</param>
@@ -107,8 +114,8 @@ namespace ValveKeyValue
 
             return format switch
             {
-                KVSerializationFormat.KeyValues1Text => new KV1TextReader(new StreamReader(stream), listener, options),
-                KVSerializationFormat.KeyValues1Binary => new KV1BinaryReader(stream, listener),
+                KVSerializationFormat.KeyValues1Text => new KV1TextReader(new StreamReader(stream, null, true, -1, leaveOpen: true), listener, options),
+                KVSerializationFormat.KeyValues1Binary => new KV1BinaryReader(stream, listener, options.StringTable),
                 _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Invalid serialization format."),
             };
         }
@@ -121,9 +128,10 @@ namespace ValveKeyValue
             return format switch
             {
                 KVSerializationFormat.KeyValues1Text => new KV1TextSerializer(stream, options),
-                KVSerializationFormat.KeyValues1Binary => new KV1BinarySerializer(stream),
+                KVSerializationFormat.KeyValues1Binary => new KV1BinarySerializer(stream, options.StringTable),
                 _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Invalid serialization format."),
             };
+            ;
         }
     }
 }

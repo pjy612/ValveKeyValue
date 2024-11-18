@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace ValveKeyValue.Deserialization.KeyValues1
 {
-    class KV1TokenReader : IDisposable
+    class KV1TokenReader : KVTokenReader
     {
         const char QuotationMark = '"';
         const char ObjectStart = '{';
@@ -16,24 +12,23 @@ namespace ValveKeyValue.Deserialization.KeyValues1
         const char ConditionEnd = ']';
         const char InclusionMark = '#';
 
-        public KV1TokenReader(TextReader textReader, KVSerializerOptions options)
+        public KV1TokenReader(TextReader textReader, KVSerializerOptions options) : base(textReader)
         {
-            Require.NotNull(textReader, nameof(textReader));
             Require.NotNull(options, nameof(options));
 
-            this.textReader = textReader;
             this.options = options;
         }
 
+        readonly StringBuilder sb = new();
         readonly KVSerializerOptions options;
-        TextReader textReader;
-        bool disposed;
-        int? peekedNext;
 
         public KVToken ReadNextToken()
         {
             Require.NotDisposed(nameof(KV1TokenReader), disposed);
             SwallowWhitespace();
+
+            PreviousTokenStartLine = Line;
+            PreviousTokenStartColumn = Column;
 
             var nextChar = Peek();
             if (IsEndOfFile(nextChar))
@@ -50,17 +45,6 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                 InclusionMark => ReadInclusion(),
                 _ => ReadString(),
             };
-        }
-
-        public void Dispose()
-        {
-            if (!disposed)
-            {
-                textReader.Dispose();
-                textReader = null;
-
-                disposed = true;
-            }
         }
 
         KVToken ReadString()
@@ -85,19 +69,23 @@ namespace ValveKeyValue.Deserialization.KeyValues1
         {
             ReadChar(CommentBegin);
 
-            var sb = new StringBuilder();
-            var next = Next();
-
             // Some keyvalues implementations have a bug where only a single slash is needed for a comment
+            // If the file ends with a single slash then we have an empty comment, bail out
+            if (!TryGetNext(out var next))
+            {
+                return new KVToken(KVTokenType.Comment, string.Empty);
+            }
+
+            // If the next character is not a slash, then we have a comment that starts with a single slash
+            // Otherwise pretend the comment is a double-slash and ignore this new second slash.
             if (next != CommentBegin)
             {
                 sb.Append(next);
             }
 
-            while (true)
+            // Be more permissive here than in other places, as comments can be the last token in a file.
+            while (TryGetNext(out next))
             {
-                next = Next();
-
                 if (next == '\n')
                 {
                     break;
@@ -112,6 +100,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             }
 
             var text = sb.ToString();
+            sb.Clear();
 
             return new KVToken(KVTokenType.Comment, text);
         }
@@ -119,7 +108,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
         KVToken ReadCondition()
         {
             ReadChar(ConditionBegin);
-            var text = ReadUntil(ConditionEnd);
+            var text = ReadUntil(static (c) => c == ConditionEnd);
             ReadChar(ConditionEnd);
 
             return new KVToken(KVTokenType.Condition, text);
@@ -128,7 +117,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
         KVToken ReadInclusion()
         {
             ReadChar(InclusionMark);
-            var term = ReadUntil(new[] { ' ', '\t' });
+            var term = ReadUntil(static c => c is ' ' or '\t');
             var value = ReadStringRaw();
 
             if (string.Equals(term, "include", StringComparison.Ordinal))
@@ -140,60 +129,14 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                 return new KVToken(KVTokenType.IncludeAndMerge, value);
             }
 
-            throw new InvalidDataException("Unrecognized term after '#' symbol.");
+            throw new InvalidDataException($"Unrecognized term after '#' symbol (line {Line}, column {Column})");
         }
 
-        char Next()
+        string ReadUntil(Func<int, bool> isTerminator)
         {
-            int next;
-
-            if (peekedNext.HasValue)
-            {
-                next = peekedNext.Value;
-                peekedNext = null;
-            }
-            else
-            {
-                next = textReader.Read();
-            }
-
-            if (next == -1)
-            {
-                throw new EndOfStreamException();
-            }
-
-            return (char)next;
-        }
-
-        int Peek()
-        {
-            if (peekedNext.HasValue)
-            {
-                return peekedNext.Value;
-            }
-
-            var next = textReader.Read();
-            peekedNext = next;
-
-            return next;
-        }
-
-        void ReadChar(char expectedChar)
-        {
-            var next = Next();
-            if (next != expectedChar)
-            {
-                throw new InvalidDataException($"The syntax is incorrect, expected '{expectedChar}' but got '{next}'.");
-            }
-        }
-
-        string ReadUntil(params char[] terminators)
-        {
-            var sb = new StringBuilder();
             var escapeNext = false;
 
-            var integerTerminators = new HashSet<int>(terminators.Select(t => (int)t));
-            while (!integerTerminators.Contains(Peek()) || escapeNext)
+            while (escapeNext || !isTerminator(Peek()))
             {
                 var next = Next();
 
@@ -209,13 +152,19 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                     {
                         next = next switch
                         {
-                            'r' => '\r',
                             'n' => '\n',
                             't' => '\t',
+                            'v' => '\v',
+                            'b' => '\b',
+                            'r' => '\r',
+                            'f' => '\f',
+                            'a' => '\a',
                             '\\' => '\\',
+                            '?' => '?',
+                            '\'' => '\'',
                             '"' => '"',
                             _ when options.EnableValveNullByteBugBehavior => '\0',
-                            _ => throw new InvalidDataException($"Unknown escape sequence '\\{next}'."),
+                            _ => throw new InvalidDataException($"Unknown escape sequence '\\{next}' at line {Line}, column {Column - 2}."),
                         };
 
                         escapeNext = false;
@@ -226,6 +175,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             }
 
             var result = sb.ToString();
+            sb.Clear();
 
             // Valve bug-for-bug compatibility with tier1 KeyValues/CUtlBuffer: an invalid escape sequence is a null byte which
             // causes the text to be trimmed to the point of that null byte.
@@ -238,8 +188,6 @@ namespace ValveKeyValue.Deserialization.KeyValues1
 
         string ReadUntilWhitespaceOrQuote()
         {
-            var sb = new StringBuilder();
-
             while (true)
             {
                 var next = Peek();
@@ -251,21 +199,10 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                 sb.Append(Next());
             }
 
-            return sb.ToString();
-        }
+            var result = sb.ToString();
+            sb.Clear();
 
-        void SwallowWhitespace()
-        {
-            while (PeekWhitespace())
-            {
-                Next();
-            }
-        }
-
-        bool PeekWhitespace()
-        {
-            var next = Peek();
-            return !IsEndOfFile(next) && char.IsWhiteSpace((char)next);
+            return result;
         }
 
         string ReadStringRaw()
@@ -284,11 +221,9 @@ namespace ValveKeyValue.Deserialization.KeyValues1
         string ReadQuotedStringRaw()
         {
             ReadChar(QuotationMark);
-            var text = ReadUntil(QuotationMark);
+            var text = ReadUntil(static (c) => c == QuotationMark);
             ReadChar(QuotationMark);
             return text;
         }
-
-        bool IsEndOfFile(int value) => value == -1;
     }
 }

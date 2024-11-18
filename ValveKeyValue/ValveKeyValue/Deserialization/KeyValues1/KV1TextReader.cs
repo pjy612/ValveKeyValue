@@ -1,6 +1,4 @@
-﻿using System;
 using System.Globalization;
-using System.IO;
 using ValveKeyValue.Abstraction;
 
 namespace ValveKeyValue.Deserialization.KeyValues1
@@ -86,7 +84,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                     case KVTokenType.IncludeAndMerge:
                         if (!stateMachine.IsAtStart)
                         {
-                            throw new KeyValueException("Inclusions are only valid at the beginning of a file.");
+                            throw new KeyValueException($"Inclusions are only valid at the beginning of a file, but found one at {tokenReader.PreviousTokenPosition}.");
                         }
 
                         stateMachine.AddItemForMerging(token.Value);
@@ -95,7 +93,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                     case KVTokenType.IncludeAndAppend:
                         if (!stateMachine.IsAtStart)
                         {
-                            throw new KeyValueException("Inclusions are only valid at the beginning of a file.");
+                            throw new KeyValueException($"Inclusions are only valid at the beginning of a file, but found one at {tokenReader.PreviousTokenPosition}.");
                         }
 
                         stateMachine.AddItemForAppending(token.Value);
@@ -140,7 +138,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                     break;
 
                 default:
-                    throw new InvalidOperationException($"Unhandled text reader state: {stateMachine.Current}.");
+                    throw new InvalidOperationException($"Unhandled text reader state: {stateMachine.Current} at {tokenReader.PreviousTokenPosition}.");
             }
         }
 
@@ -154,7 +152,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
         {
             if (stateMachine.Current != KV1TextReaderState.InObjectBetweenKeyAndValue)
             {
-                throw new InvalidOperationException($"Attempted to begin new object while in state {stateMachine.Current}.");
+                throw new InvalidOperationException($"Attempted to begin new object while in state {stateMachine.Current} at {tokenReader.PreviousTokenPosition}.");
             }
 
             listener.OnObjectStart(stateMachine.CurrentName);
@@ -167,7 +165,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
         {
             if (stateMachine.Current != KV1TextReaderState.InObjectBeforeKey && stateMachine.Current != KV1TextReaderState.InObjectAfterValue)
             {
-                throw new InvalidOperationException($"Attempted to finalize object while in state {stateMachine.Current}.");
+                throw new InvalidOperationException($"Attempted to finalize object while in state {stateMachine.Current} at {tokenReader.PreviousTokenPosition}.");
             }
 
             stateMachine.PopObject(out var discard);
@@ -245,11 +243,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                 throw new KeyValueException("Inclusions require a FileLoader to be provided in KVSerializerOptions.");
             }
 
-            var stream = options.FileLoader.OpenFile(filePath);
-            if (stream == null)
-            {
-                throw new KeyValueException("IIncludedFileLoader returned null for included file path.");
-            }
+            var stream = options.FileLoader.OpenFile(filePath) ?? throw new KeyValueException("IIncludedFileLoader returned null for included file path.");
 
             return stream;
         }
@@ -263,7 +257,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             if (text.Length == HexStringLengthForUnsignedLong && text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
                 var hexadecimalString = text[2..];
-                var data = ParseHexStringAsByteArray(hexadecimalString);
+                var data = HexStringHelper.ParseHexStringAsByteArray(hexadecimalString);
 
                 if (BitConverter.IsLittleEndian)
                 {
@@ -295,20 +289,6 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             }
 
             return new KVObjectValue<string>(text, KVValueType.String);
-        }
-
-        static byte[] ParseHexStringAsByteArray(string hexadecimalRepresentation)
-        {
-            Require.NotNull(hexadecimalRepresentation, nameof(hexadecimalRepresentation));
-
-            var data = new byte[hexadecimalRepresentation.Length / 2];
-            for (var i = 0; i < data.Length; i++)
-            {
-                var currentByteText = hexadecimalRepresentation.Substring(i * 2, 2);
-                data[i] = byte.Parse(currentByteText, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            }
-
-            return data;
         }
 
         // The string may begin with an arbitrary amount of white space (as determined by isspace(3)) followed by a single optional

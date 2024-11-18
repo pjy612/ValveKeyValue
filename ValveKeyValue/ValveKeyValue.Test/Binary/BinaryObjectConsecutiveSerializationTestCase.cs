@@ -1,9 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using NUnit.Framework;
-
 namespace ValveKeyValue.Test
 {
     class BinaryObjectConsecutiveSerializationTestCase
@@ -11,15 +5,15 @@ namespace ValveKeyValue.Test
         [Test]
         public void SerializesToBinaryStructure()
         {
-            var first = new KVObject("FirstObject", new[]
-            {
+            var first = new KVObject("FirstObject",
+            [
                 new KVObject("firstkey", "firstvalue")
-            });
+            ]);
 
-            var second = new KVObject("SecondObject", new[]
-            {
+            var second = new KVObject("SecondObject",
+            [
                 new KVObject("secondkey", "secondvalue")
-            });
+            ]);
 
             var expectedData = new byte[]
             {
@@ -44,6 +38,7 @@ namespace ValveKeyValue.Test
             KVSerializer.Create(KVSerializationFormat.KeyValues1Binary).Serialize(stream, first);
             KVSerializer.Create(KVSerializationFormat.KeyValues1Binary).Serialize(stream, second);
             Assert.That(stream.ToArray(), Is.EqualTo(expectedData));
+            Assert.That(stream.CanRead, Is.True);
         }
     }
 }

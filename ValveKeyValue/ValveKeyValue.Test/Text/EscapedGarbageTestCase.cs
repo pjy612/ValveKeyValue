@@ -1,6 +1,3 @@
-﻿using System.IO;
-using NUnit.Framework;
-
 namespace ValveKeyValue.Test
 {
     class EscapedGarbageTestCase
@@ -26,7 +23,7 @@ namespace ValveKeyValue.Test
                 () => KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream, options),
                 Throws.Exception.TypeOf<KeyValueException>()
                 .With.InnerException.TypeOf<InvalidDataException>()
-                .With.Message.EqualTo(@"Unknown escape sequence '\7'."));
+                .With.Message.EqualTo(@"Unknown escape sequence '\7' at line 3, column 14."));
         }
 
         [Test]

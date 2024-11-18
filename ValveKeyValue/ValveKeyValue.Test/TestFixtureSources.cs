@@ -1,8 +1,5 @@
-﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using NUnit.Framework;
 using NUnit.Framework.Internal;
 
 namespace ValveKeyValue.Test
@@ -26,7 +23,7 @@ namespace ValveKeyValue.Test
         {
             var data = new TestFixtureAttribute
             {
-                TypeArgs = new[] { genericType }
+                TypeArgs = [genericType]
             };
             var parameters = new TestFixtureParameters(data);
             return parameters;

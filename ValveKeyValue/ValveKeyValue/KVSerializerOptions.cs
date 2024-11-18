@@ -1,4 +1,3 @@
-﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace ValveKeyValue
@@ -27,6 +26,12 @@ namespace ValveKeyValue
         /// Gets or sets a way to open any file referenced with <c>#include</c> or <c>#base</c>.
         /// </summary>
         public IIncludedFileLoader FileLoader { get; set; }
+
+
+        /// <summary>
+        /// Gets or sets the string table used for smaller binary serialization.
+        /// </summary>
+        public StringTable StringTable { get; set; }
 
         /// <summary>
         /// Gets the default options (used when none are specified).

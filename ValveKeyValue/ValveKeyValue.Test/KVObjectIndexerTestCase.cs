@@ -1,10 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NUnit.Framework;
-
 namespace ValveKeyValue.Test
 {
     class KVObjectIndexerTestCase
@@ -31,12 +24,11 @@ namespace ValveKeyValue.Test
         {
             data = new KVObject(
                 "test data",
-                new[]
-                {
+                [
                     new KVObject("foo", "bar"),
                     new KVObject("bar", "baz"),
                     new KVObject("baz", "-"),
-                });
+                ]);
         }
     }
 }

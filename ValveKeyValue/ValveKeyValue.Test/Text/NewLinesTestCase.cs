@@ -1,6 +1,4 @@
-﻿using System.IO;
 using System.Text;
-using NUnit.Framework;
 
 namespace ValveKeyValue.Test
 {
